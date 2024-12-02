@@ -91,7 +91,7 @@
 
                 <!-- Email Input -->
                 <div>
-                    <label for="email" class="block text-sm text-gray-600">Email</label>
+                    <label for="email" class="block text-sm text-gray-600">Email Address</label>
                     <input
                         type="email"
                         id="email"
