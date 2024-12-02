@@ -18,4 +18,3 @@ function getDbConnection() {
         die("Connection failed: " . $e->getMessage());
     }
 }
-?>

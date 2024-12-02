@@ -2,108 +2,69 @@
     import { writable } from 'svelte/store';
     import { EyeSlashSolid, EyeSolid } from 'flowbite-svelte-icons';
 
-    let name = writable('');
-    let email = writable('');
-    let password = writable('');
-    let confirmPassword = writable('');
-    let address = writable('');
-    let phoneNumber = writable('');
-    let nameError = writable('');
-    let emailError = writable('');
-    let passwordError = writable('');
-    let confirmPasswordError = writable('');
-    let addressError = writable('');
-    let phoneNumberError = writable('');
-    let showPassword = writable(false);
-    let showConfirmPassword = writable(false);
-
-    // Validate email and phone number
-    function validateEmail(email: string): boolean {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-
-    function validatePhoneNumber(phone: string): boolean {
-        const phoneRegex = /^\d{11}$/;
-        return phoneRegex.test(phone);
-    }
+    // Define writable stores for form fields and errors
+    const name = writable('');
+    const email = writable('');
+    const address = writable('');
+    const phoneNumber = writable('');
+    const password = writable('');
+    const confirmPassword = writable('');
+    const showPassword = writable(false);
+    const showConfirmPassword = writable(false);
+    
+    // Error states
+    const nameError = writable('');
+    const emailError = writable('');
+    const addressError = writable('');
+    const phoneNumberError = writable('');
+    const passwordError = writable('');
+    const confirmPasswordError = writable('');
 
     // Handle form submission
-    function handleSubmit(event: Event) {
-        event.preventDefault();
+    async function handleSubmit(event: SubmitEvent) {
+        event.preventDefault(); // Prevent default form submission
 
-        // Reset errors
-        nameError.set('');
-        emailError.set('');
-        passwordError.set('');
-        confirmPasswordError.set('');
-        addressError.set('');
-        phoneNumberError.set('');
-
-        // Access values from writable stores
-        let $name, $email, $password, $confirmPassword, $address, $phoneNumber;
-        name.subscribe(value => $name = value)();
-        email.subscribe(value => $email = value)();
-        password.subscribe(value => $password = value)();
-        confirmPassword.subscribe(value => $confirmPassword = value)();
-        address.subscribe(value => $address = value)();
-        phoneNumber.subscribe(value => $phoneNumber = value)();
-
-        // Validation
-        if (!$name) {
-            nameError.set('Name is required.');
-            return;
-        }
-        if (!$email) {
-            emailError.set('Email is required.');
-            return;
-        }
-        if (!validateEmail($email)) {
-            emailError.set('Please enter a valid email address.');
-            return;
-        }
-        if (!$password) {
-            passwordError.set('Password is required.');
-            return;
-        }
-        if ($password !== $confirmPassword) {
-            confirmPasswordError.set('Passwords do not match.');
-            return;
-        }
-        if (!$address) {
-            addressError.set('Address is required.');
-            return;
-        }
-        if (!$phoneNumber || !validatePhoneNumber($phoneNumber)) {
-            phoneNumberError.set('Phone number must be exactly 11 digits.');
-            return;
-        }
-
-        // Prepare registration data
-        const registerData = {
+        // Collect form data
+        const formData = {
             name: $name,
             email: $email,
-            password: $password,
             address: $address,
             phoneNumber: $phoneNumber,
+            password: $password
         };
 
-        // Send data to the backend
-        fetch('http://localhost/GreenPhil-Project/backend/api/register.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(registerData),
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('Registration successful!');
-                    window.location.href = '/login'; // Redirect after successful registration
-                } else {
-                    alert(data.message); // Show error message from the server
+        try {
+            const response = await fetch('http://localhost/GreenPhil_Project/backend/api/register.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                // Handle successful registration (e.g., redirect or show a message)
+                alert(result.message);
+            } else {
+                // Handle errors (e.g., show error messages)
+                if (result.message.includes('Name is required')) {
+                    nameError.set(result.message);
+                } else if (result.message.includes('Email is required')) {
+                    emailError.set(result.message);
+                } else if (result.message.includes('Password is required')) {
+                    passwordError.set(result.message);
+                } else if (result.message.includes('Address is required')) {
+                    addressError.set(result.message);
+                } else if (result.message.includes('Phone number is required')) {
+                    phoneNumberError.set(result.message);
                 }
-            })
-            .catch(error => console.error('Error:', error));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 </script>
 
